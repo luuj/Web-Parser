@@ -1,0 +1,3 @@
+nothing [hello](DFS/data2.txt) i am a test txt
+[yo](DFS/data3.txt)
+[sup](DFS/data4.txt) mom dad camera school@@ cs fun#$#

@@ -6,6 +6,7 @@
 #include <QString>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QRadioButton>
 #include <vector>
 #include "../webparse/web.h"
 using namespace std;
@@ -19,6 +20,7 @@ class mainWindow : public QWidget
     QSize sizeHint() const { return QSize( 650, 500 ); }
     void copyQuery(map<string, Set<WebPage*> > q);
     void copyWeb(vector<WebPage*>);
+    Set<WebPage*> pageRank(Set<WebPage*>);
 
   private slots:
     void searchClicked();
@@ -26,6 +28,8 @@ class mainWindow : public QWidget
     void ORClicked();
     void quitClicked();
     void popupWindow(QListWidgetItem*);
+    void alphaClicked();
+    void prClicked();
   private:
     QLineEdit* searchText;
     QPushButton* searchButton;
@@ -34,12 +38,15 @@ class mainWindow : public QWidget
     QPushButton* quitButton;
     QListWidget* bigList;
     QWidget* window;
+    QRadioButton* alphaButton;
+    QRadioButton* prButton;
 
     string Qinput;
     map<string, Set<WebPage*> > query;
     Set<WebPage*> compSet, tempSet;
     vector<WebPage*> webP;
     bool opened;
+    string sortOrder;
 
     QListWidget* inList;
     QListWidget* outList;

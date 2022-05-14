@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'mainWindow.h'
 **
-** Created: Wed Mar 26 00:37:12 2014
+** Created: Wed Apr 9 01:59:01 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_mainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       5,   14, // methods
+       7,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -36,6 +36,8 @@ static const uint qt_meta_data_mainWindow[] = {
       41,   11,   11,   11, 0x08,
       53,   11,   11,   11, 0x08,
       67,   11,   11,   11, 0x08,
+      97,   11,   11,   11, 0x08,
+     112,   11,   11,   11, 0x08,
 
        0        // eod
 };
@@ -44,6 +46,7 @@ static const char qt_meta_stringdata_mainWindow[] = {
     "mainWindow\0\0searchClicked()\0ANDClicked()\0"
     "ORClicked()\0quitClicked()\0"
     "popupWindow(QListWidgetItem*)\0"
+    "alphaClicked()\0prClicked()\0"
 };
 
 void mainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -57,6 +60,8 @@ void mainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 2: _t->ORClicked(); break;
         case 3: _t->quitClicked(); break;
         case 4: _t->popupWindow((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
+        case 5: _t->alphaClicked(); break;
+        case 6: _t->prClicked(); break;
         default: ;
         }
     }
@@ -94,9 +99,9 @@ int mainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 7)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 7;
     }
     return _id;
 }

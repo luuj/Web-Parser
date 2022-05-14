@@ -31,7 +31,7 @@ WebPage::WebPage (string filename)
 
 void WebPage::parse()
 {
-  string buffer, temp;
+  string buffer, temp, webPageName;
   bool flag;
   for (unsigned int i=0; i<page.size()-1; i++)
   {
@@ -115,11 +115,13 @@ string WebPage::removeParen()
     for (unsigned int k=0; k<buffer.length(); k++)
     {
       char checker = buffer[k];
-      if (checker == '[')
+      if (checker == '[')     
         flag = true;
+      
 
       if ((flag == true) && (buffer[k] == ']') && (buffer[k+1] != '('))
         flag = false;
+
   
       if ( (flag == true) && (buffer[k] == '(') )
       {
@@ -180,6 +182,29 @@ Set<string> WebPage::queuedLinks ()
   return webLink;
 }
 
+void WebPage::setPageRank(double PR)
+{
+  pageRank = PR;
+}
 
+void WebPage::setTempRank(double PR)
+{
+  tempRank = PR;
+}
+
+double WebPage::getPageRank()
+{
+  return pageRank;
+}
+
+double WebPage::getTempRank()
+{
+  return tempRank;
+}
+
+void WebPage::addPageRank(double PR)
+{
+  tempRank = tempRank + PR;
+}
 
 

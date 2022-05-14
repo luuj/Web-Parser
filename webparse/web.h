@@ -45,6 +45,11 @@ class WebPage {
     Set<string> queuedLinks (); //returns Set of strings containing queued webpages to be parsed
 
     string removeParen();
+    void setTempRank(double PR);
+    void setPageRank(double PR);
+    double getPageRank();
+    double getTempRank();
+    void addPageRank(double PR);
 
 
   private:
@@ -52,6 +57,7 @@ class WebPage {
     vector<string> page;
     Set<string> words, webLink;
     Set<WebPage*> webOut, webIn;
+    double pageRank, tempRank;
     // you get to decide what goes here.
 };
 

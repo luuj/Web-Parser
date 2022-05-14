@@ -9,8 +9,11 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QDialog>
+#include <QRadioButton>
 #include <sstream>
 #include "mainWindow.h"
+#include "msort.h"
+#define R_PROB 0.15
 using namespace std;
  
 mainWindow::mainWindow(QWidget* parent)
@@ -18,7 +21,10 @@ mainWindow::mainWindow(QWidget* parent)
   searchButton = new QPushButton("&Search");
   quitButton = new QPushButton("&Quit");
   ANDButton = new QPushButton("&AND");
-  ORButton = new QPushButton("&OR");
+  ORButton = new QPushButton("&OR"); 
+  alphaButton = new QRadioButton("Alphabetical");
+  prButton = new QRadioButton("PageRank");
+  
   opened = false;
 
   searchText = new QLineEdit("Enter one word for search; Two+ words for AND/OR");
@@ -29,6 +35,10 @@ mainWindow::mainWindow(QWidget* parent)
   textBox->addWidget(searchText);
   textBox->addWidget(bigList);
   
+  QHBoxLayout* radioBox = new QHBoxLayout;
+  radioBox->addWidget(alphaButton);
+  radioBox->addWidget(prButton); 
+
   QHBoxLayout* buttonBox = new QHBoxLayout;
   buttonBox->addWidget(searchButton);
   buttonBox->addWidget(ANDButton);
@@ -37,6 +47,7 @@ mainWindow::mainWindow(QWidget* parent)
 
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addLayout(textBox);
+  mainLayout->addLayout(radioBox);
   mainLayout->addLayout(buttonBox);
 
   connect(quitButton, SIGNAL(clicked()), this, SLOT(quitClicked()));
@@ -44,6 +55,8 @@ mainWindow::mainWindow(QWidget* parent)
   connect(ANDButton, SIGNAL (clicked()), this, SLOT(ANDClicked()));
   connect(ORButton, SIGNAL (clicked()), this, SLOT(ORClicked()));
   connect(bigList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(popupWindow(QListWidgetItem*)));
+  connect(alphaButton, SIGNAL(clicked()), this, SLOT(alphaClicked()));
+  connect(prButton, SIGNAL(clicked()), this, SLOT(prClicked()));
 
   setLayout(mainLayout);
 }
@@ -52,7 +65,7 @@ void mainWindow::popupWindow(QListWidgetItem* inputFile)
 {
   if (opened == true){
     delete window->layout();
-    window->close();}
+      window->close();}
 
   window = new QWidget;
   QString temp = inputFile->text(); //Title of window
@@ -142,10 +155,51 @@ void mainWindow::searchClicked()
     return;
   }    
  
-  Set<WebPage*>::iterator stepPrint = tempSet.begin();
-  for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+  AlphaSort compare;
+  vector<string> webNameArray; 
+  vector<double> tempPRholder, PRholder;
+  tempSet = pageRank(tempSet);
+
+
+  if (sortOrder == "Alpha")
   {
-    string temp = (**stepPrint).filename();
+    Set<WebPage*>::iterator stepPrint = tempSet.begin();
+    for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint) //Get text file names 
+    {
+      string temp = (**stepPrint).filename();
+      webNameArray.push_back(temp);
+    }
+
+    mergeSort(webNameArray, compare); //Sort file names alphabetically
+  }
+  
+  if (sortOrder == "PR")
+  { 
+    prSort comparePR; 
+    Set<WebPage*>::iterator stepPrint = tempSet.begin();
+    for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)//Retrieve all values of pageRank
+      tempPRholder.push_back((**stepPrint).getPageRank());
+ 
+    mergeSort(tempPRholder, comparePR); //Sort pageRank from greatest to least
+
+    for (int i=0; i<(signed)tempPRholder.size(); i++) //Associate sorted pageRanks with webpage names
+    {
+      for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+      {
+        if ( (**stepPrint).getPageRank() == tempPRholder[i] )
+        { 
+          webNameArray.push_back( (**stepPrint).filename());
+          tempSet.erase(*stepPrint);
+          break;
+        }
+      }
+    }
+  }
+ 
+
+  for (int i=0; i<(signed)webNameArray.size(); i++) //Display file names
+  {
+    string temp = webNameArray[i];
     QString temp2 = QString::fromStdString(temp);
     bigList->addItem(temp2);
   }
@@ -169,7 +223,7 @@ void mainWindow::ANDClicked()
       break;
     tempHold.push_back(Qinput);
   }
- 
+
   if (tempHold.size() < 2) //Check if more than one word
   {
     bigList->addItem("Please enter more than one word");
@@ -184,6 +238,12 @@ void mainWindow::ANDClicked()
       tempSet = query.find(tempHold[i])->second;
       break;
     }
+    else 
+    {
+      bigList->clear();
+      bigList->addItem("No results found");
+      return;
+    }
   }
   
   if (i < tempHold.size())
@@ -192,6 +252,12 @@ void mainWindow::ANDClicked()
     {
       if (query.find(tempHold[k]) != query.end())
         compSet = query.find(tempHold[k])->second;
+      else
+      {
+        bigList->clear();
+        bigList->addItem("No results found");
+        return;
+      }
       if (!compSet.empty())
         tempSet = tempSet.setIntersection(compSet);      
     } 
@@ -203,15 +269,55 @@ void mainWindow::ANDClicked()
   }
   else
   {
-    Set<WebPage*>::iterator stepPrint = tempSet.begin();
-    for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+    AlphaSort compare;
+    vector<string> webNameArray; 
+    vector<double> tempPRholder, PRholder;
+    tempSet = pageRank(tempSet);
+
+    if (sortOrder == "Alpha")
     {
-      string temp = (**stepPrint).filename();
+      Set<WebPage*>::iterator stepPrint = tempSet.begin();
+      for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint) //Get text file names 
+      {
+        string temp = (**stepPrint).filename();
+        webNameArray.push_back(temp);
+      }
+
+      mergeSort(webNameArray, compare); //Sort file names alphabetically
+    }
+  
+    if (sortOrder == "PR")
+    { 
+      prSort comparePR; 
+      Set<WebPage*>::iterator stepPrint = tempSet.begin();
+      for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)//Retrieve all values of pageRank
+        tempPRholder.push_back((**stepPrint).getPageRank());
+ 
+      mergeSort(tempPRholder, comparePR); //Sort pageRank from greatest to least
+
+      for (int i=0; i<(signed)tempPRholder.size(); i++) //Associate sorted pageRanks with webpage names
+      {
+        for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+        {
+          if ( (**stepPrint).getPageRank() == tempPRholder[i] )
+          { 
+            webNameArray.push_back( (**stepPrint).filename());
+            tempSet.erase(*stepPrint);
+            break;
+          }
+        }
+      }
+    }
+
+    for (int i=0; i<(signed)webNameArray.size(); i++) //Display file names
+    {
+      string temp = webNameArray[i];
       QString temp2 = QString::fromStdString(temp);
       bigList->addItem(temp2);
     }
   }
 }
+
 
 void mainWindow::ORClicked()
 {
@@ -265,10 +371,49 @@ void mainWindow::ORClicked()
   }
   else
   {
-    Set<WebPage*>::iterator stepPrint = tempSet.begin();
-    for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+    AlphaSort compare;
+    vector<string> webNameArray; 
+    vector<double> tempPRholder, PRholder;
+    tempSet = pageRank(tempSet);
+
+    if (sortOrder == "Alpha")
     {
-      string temp = (**stepPrint).filename();
+      Set<WebPage*>::iterator stepPrint = tempSet.begin();
+      for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint) //Get text file names 
+      {
+        string temp = (**stepPrint).filename();
+        webNameArray.push_back(temp);
+      }
+
+      mergeSort(webNameArray, compare); //Sort file names alphabetically
+    }
+  
+    if (sortOrder == "PR")
+    { 
+      prSort comparePR; 
+      Set<WebPage*>::iterator stepPrint = tempSet.begin();
+      for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)//Retrieve all values of pageRank
+        tempPRholder.push_back((**stepPrint).getPageRank());
+ 
+      mergeSort(tempPRholder, comparePR); //Sort pageRank from greatest to least
+
+      for (int i=0; i<(signed)tempPRholder.size(); i++) //Associate sorted pageRanks with webpage names
+      {
+        for (stepPrint = tempSet.begin(); stepPrint != tempSet.end(); ++stepPrint)
+        {
+          if ( (**stepPrint).getPageRank() == tempPRholder[i] )
+          { 
+            webNameArray.push_back( (**stepPrint).filename());
+            tempSet.erase(*stepPrint);
+            break;
+          }
+        }
+      }
+    }
+
+    for (int i=0; i<(signed)webNameArray.size(); i++) //Display file names
+    {
+      string temp = webNameArray[i];
       QString temp2 = QString::fromStdString(temp);
       bigList->addItem(temp2);
     }
@@ -285,8 +430,87 @@ void mainWindow::copyWeb(vector<WebPage*> temp)
   webP = temp;
 }
 
+Set<WebPage*> mainWindow::pageRank(Set<WebPage*> tempList)
+{
+  Set<WebPage*>::iterator pageIT = tempList.begin();
+  Set<WebPage*> unsortedList = tempList;
+
+  for (pageIT = tempList.begin(); pageIT != tempList.end(); ++pageIT) //Find outgoing and incoming links from all Webpage hits
+  {
+    Set<WebPage*> tempOutSet = (**pageIT).allOutgoingLinks(); //All outgoing links to current page
+    Set<WebPage*> tempInSet = (**pageIT).allIncomingLinks(); //All incoming links to current page
+
+    unsortedList = unsortedList.setUnion(tempOutSet);
+    unsortedList = unsortedList.setUnion(tempInSet); //UnsortedList now has all hits + incoming/outgoing from all hit pages
+  }
+
+  double vertices = unsortedList.size();  
+  double totalPR;
+  double distribution = 1/vertices;
+
+  int tempI = 0; //Initialize pageRank scores;
+  for (pageIT = unsortedList.begin(); pageIT != unsortedList.end(); ++pageIT)
+  {
+    (**pageIT).setPageRank(distribution);
+    tempI++;    
+  }
+
+  for (int i=0; i<30; i++)
+  {
+    for (pageIT = unsortedList.begin(); pageIT != unsortedList.end(); ++pageIT)
+    {
+      Set<WebPage*> tempInSet = unsortedList.setIntersection((**pageIT).allIncomingLinks());
+      Set<WebPage*> testSet = unsortedList.setIntersection((**pageIT).allOutgoingLinks());
+
+      Set<WebPage*>::iterator linkIT = tempInSet.begin(); //Iterate through incoming links
+      for (linkIT = tempInSet.begin(); linkIT != tempInSet.end(); ++linkIT)
+      {
+        Set<WebPage*> tempOutSet = unsortedList.setIntersection((**linkIT).allOutgoingLinks());
+        double outDegree = tempOutSet.size();  
+        totalPR += (((1-R_PROB)*(**linkIT).getPageRank())/outDegree); // X(I) * .85 / # of outgoing links 
+      }
+
+      Set<WebPage*>::iterator randomIT = unsortedList.begin();
+      for (randomIT = unsortedList.begin(); randomIT != unsortedList.end(); ++randomIT)
+      {
+        if (*randomIT != *pageIT)
+          totalPR += ( (**randomIT).getPageRank() * R_PROB ) / (vertices-1);
+      }
+
+      if (testSet.empty()) //Test if it is a sink or not
+      {
+        double tempNode = (**pageIT).getPageRank() / vertices; //x(i)/n if sink node
+        totalPR += tempNode;
+        tempNode -= ( (**pageIT).getPageRank() * R_PROB ) / (vertices-1);
+        Set<WebPage*>::iterator sinkIT = unsortedList.begin();
+        for (sinkIT = unsortedList.begin(); sinkIT != unsortedList.end(); ++sinkIT) //Iterate through all nodes
+        {
+          if (*sinkIT != *pageIT)
+            (**sinkIT).addPageRank(tempNode); //Add x(i)/n of the sink node to all   
+        }
+      }
+
+      (**pageIT).setTempRank(totalPR);
+      totalPR = 0; //Reset for next website
+    }
+
+    for (pageIT = unsortedList.begin(); pageIT != unsortedList.end(); ++pageIT)
+    {
+      (**pageIT).setPageRank((**pageIT).getTempRank());   
+    } 
+  }
+  return unsortedList;
+}
 
 
+void mainWindow::alphaClicked()
+{
+  sortOrder = "Alpha";
+}
 
+void mainWindow::prClicked()
+{
+  sortOrder = "PR";
+}
 
 

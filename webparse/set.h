@@ -25,6 +25,8 @@ template <class T>
 Set<T> Set<T>::setIntersection (const Set<T> & other) const
 {
   Set<T> temp;
+  if (this->empty())
+    return temp;
   if (other.empty()) //IF other set is empty, nothing in common
     return temp;
 
